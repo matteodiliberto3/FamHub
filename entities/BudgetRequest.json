@@ -1,0 +1,25 @@
+{
+  "name": "BudgetRequest",
+  "type": "object",
+  "properties": {
+    "title": { "type": "string", "description": "Titolo della richiesta" },
+    "description": { "type": "string", "description": "Descrizione dettagliata" },
+    "type": {
+      "type": "string",
+      "enum": ["vacanza", "gita_scolastica", "campo_estivo", "altro"],
+      "description": "Tipo di richiesta"
+    },
+    "amount": { "type": "number", "description": "Importo richiesto" },
+    "date_from": { "type": "string", "format": "date", "description": "Data inizio" },
+    "date_to": { "type": "string", "format": "date", "description": "Data fine" },
+    "requested_by": { "type": "string", "description": "Richiesto da" },
+    "status": {
+      "type": "string",
+      "enum": ["in_attesa", "approvato", "rifiutato"],
+      "default": "in_attesa",
+      "description": "Stato della richiesta"
+    },
+    "parent_notes": { "type": "string", "description": "Note dei genitori" }
+  },
+  "required": ["title", "amount", "type"]
+}

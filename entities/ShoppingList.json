@@ -1,0 +1,25 @@
+{
+  "name": "ShoppingList",
+  "type": "object",
+  "properties": {
+    "name": { "type": "string", "description": "Nome della lista" },
+    "items": {
+      "type": "array",
+      "description": "Elementi della lista",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "quantity": { "type": "string" },
+          "checked": { "type": "boolean" }
+        }
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": ["attiva", "completata"],
+      "default": "attiva"
+    }
+  },
+  "required": ["name"]
+}

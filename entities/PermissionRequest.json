@@ -1,0 +1,28 @@
+{
+  "name": "PermissionRequest",
+  "type": "object",
+  "properties": {
+    "child_name": { "type": "string", "description": "Nome del figlio" },
+    "description": { "type": "string", "description": "Descrizione dell'uscita" },
+    "date": { "type": "string", "format": "date", "description": "Data richiesta" },
+    "time": { "type": "string", "description": "Orario previsto" },
+    "return_time": { "type": "string", "description": "Orario di rientro" },
+    "location": { "type": "string", "description": "Luogo" },
+    "parent1_approval": {
+      "type": "string",
+      "enum": ["in_attesa", "approvato", "rifiutato"],
+      "default": "in_attesa",
+      "description": "Approvazione genitore 1"
+    },
+    "parent1_name": { "type": "string", "description": "Nome genitore 1" },
+    "parent2_approval": {
+      "type": "string",
+      "enum": ["in_attesa", "approvato", "rifiutato"],
+      "default": "in_attesa",
+      "description": "Approvazione genitore 2"
+    },
+    "parent2_name": { "type": "string", "description": "Nome genitore 2" },
+    "notes": { "type": "string", "description": "Note aggiuntive" }
+  },
+  "required": ["child_name", "description", "date"]
+}

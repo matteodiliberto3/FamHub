@@ -1,0 +1,21 @@
+{
+  "name": "Transaction",
+  "type": "object",
+  "properties": {
+    "description": { "type": "string", "description": "Descrizione della transazione" },
+    "amount": { "type": "number", "description": "Importo della transazione" },
+    "type": {
+      "type": "string",
+      "enum": ["entrata", "uscita"],
+      "description": "Tipo di transazione"
+    },
+    "category": {
+      "type": "string",
+      "enum": ["stipendio", "bollette", "spesa", "trasporti", "salute", "istruzione", "svago", "abbigliamento", "casa", "altro"],
+      "description": "Categoria della transazione"
+    },
+    "date": { "type": "string", "format": "date", "description": "Data della transazione" },
+    "parent_name": { "type": "string", "description": "Nome del genitore" }
+  },
+  "required": ["description", "amount", "type", "date"]
+}
