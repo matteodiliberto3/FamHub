@@ -10,6 +10,12 @@ import {
 import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 
 const AuthContext = createContext();
+const configuredAuthRedirectUrl = import.meta.env.VITE_AUTH_REDIRECT_URL?.trim();
+
+function getAuthRedirectUrl() {
+  const baseUrl = configuredAuthRedirectUrl || window.location.origin;
+  return `${baseUrl.replace(/\/+$/, '')}${window.location.pathname}`;
+}
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -128,7 +134,7 @@ export const AuthProvider = ({ children }) => {
 
     supabase.auth.signOut().finally(() => {
       if (shouldRedirect) {
-        window.location.href = window.location.origin;
+        window.location.href = configuredAuthRedirectUrl || window.location.origin;
       }
     });
   };
@@ -142,7 +148,7 @@ export const AuthProvider = ({ children }) => {
       return;
     }
 
-    const redirectTo = `${window.location.origin}${window.location.pathname}`;
+    const redirectTo = getAuthRedirectUrl();
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
