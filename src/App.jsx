@@ -15,6 +15,7 @@ import ShoppingLists from './pages/ShoppingLists';
 import BudgetRequests from './pages/BudgetRequests';
 import Onboarding from './pages/Onboarding';
 import ChildrenManagement from './pages/ChildrenManagement';
+import Login from './pages/Login';
 
 const AuthenticatedApp = () => {
   const {
@@ -39,10 +40,13 @@ const AuthenticatedApp = () => {
   if (authError) {
     if (authError.type === 'user_not_registered') {
       return <UserNotRegisteredError />;
-    } else if (authError.type === 'auth_required') {
-      navigateToLogin();
-      return null;
+    } else if (authError.type === 'auth_required' || authError.type === 'auth_not_configured') {
+      return <Login onGoogleLogin={navigateToLogin} />;
     }
+  }
+
+  if (!user) {
+    return <Login onGoogleLogin={navigateToLogin} />;
   }
 
   if (needsOnboarding) {

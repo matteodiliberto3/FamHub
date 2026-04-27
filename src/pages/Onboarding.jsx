@@ -45,6 +45,7 @@ export default function Onboarding({
   const [selectedFamily, setSelectedFamily] = useState(null);
   const [spouseName, setSpouseName] = useState("");
   const [childrenNames, setChildrenNames] = useState([""]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const filteredFamilies = useMemo(() => {
     const q = familyQuery.trim().toLowerCase();
@@ -70,18 +71,22 @@ export default function Onboarding({
   const updateChildField = (index, value) =>
     setChildrenNames((prev) => prev.map((name, i) => (i === index ? value : name)));
 
-  const handleComplete = () => {
+  const handleComplete = async () => {
     if (!role) return;
     const familyName = selectedFamily?.name || exactFamilyMatch?.name || familyQuery.trim();
     if (!familyName) return;
-
-    onComplete({
-      role,
-      familyName,
-      spouseName,
-      childrenNames,
-      displayName: currentUser?.name || "Utente",
-    });
+    setIsSubmitting(true);
+    try {
+      await onComplete({
+        role,
+        familyName,
+        spouseName,
+        childrenNames,
+        displayName: currentUser?.name || "Utente",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -276,9 +281,9 @@ export default function Onboarding({
                   <Button variant="outline" onClick={() => setStep(2)}>
                     Indietro
                   </Button>
-                  <Button onClick={handleComplete}>
+                  <Button onClick={handleComplete} disabled={isSubmitting}>
                     <Check className="w-4 h-4 mr-1" />
-                    Entra in DILIHUB
+                    {isSubmitting ? "Salvataggio..." : "Entra in DILIHUB"}
                   </Button>
                 </div>
               </div>
@@ -296,7 +301,9 @@ export default function Onboarding({
                   </p>
                 </div>
                 <div className="flex justify-center">
-                  <Button onClick={handleComplete}>Vai alla dashboard</Button>
+                  <Button onClick={handleComplete} disabled={isSubmitting}>
+                    {isSubmitting ? "Salvataggio..." : "Vai alla dashboard"}
+                  </Button>
                 </div>
               </div>
             )}

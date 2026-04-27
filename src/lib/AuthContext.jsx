@@ -1,13 +1,13 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
 import {
   createChildProfile,
-  getProfile,
-  listFamilies,
+  getProfileAsync,
+  listFamiliesAsync,
   registerLoginAccount,
-  saveProfile,
+  saveProfileAsync,
   upsertFamily,
 } from '@/lib/onboarding-store';
+import { isSupabaseConfigured, supabase } from '@/lib/supabase';
 
 const AuthContext = createContext();
 
@@ -24,6 +24,16 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     checkAppState();
+  }, []);
+
+  useEffect(() => {
+    if (!supabase) return undefined;
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(() => {
+      checkUserAuth();
+    });
+    return () => subscription.unsubscribe();
   }, []);
 
   const checkAppState = async () => {
@@ -48,17 +58,49 @@ export const AuthProvider = ({ children }) => {
   const checkUserAuth = async () => {
     try {
       setIsLoadingAuth(true);
-      const currentUser = await base44.auth.me();
-      registerLoginAccount({
+      if (!isSupabaseConfigured || !supabase) {
+        setAuthError({
+          type: 'auth_not_configured',
+          message: 'Supabase configuration is missing',
+        });
+        setIsLoadingAuth(false);
+        setIsAuthenticated(false);
+        setAuthChecked(true);
+        return;
+      }
+
+      const {
+        data: { user: supabaseUser },
+        error,
+      } = await supabase.auth.getUser();
+
+      if (error) throw error;
+
+      if (!supabaseUser) {
+        throw { status: 401, message: 'Authentication required' };
+      }
+
+      const currentUser = {
+        id: supabaseUser.id,
+        name:
+          supabaseUser.user_metadata?.full_name ||
+          supabaseUser.user_metadata?.name ||
+          supabaseUser.email?.split('@')[0] ||
+          'Utente',
+        email: supabaseUser.email,
+        provider: supabaseUser.app_metadata?.provider || 'google',
+      };
+
+      await registerLoginAccount({
         accountId: currentUser.id,
         email: currentUser.email || `${currentUser.id}@local.dilihub.app`,
         displayName: currentUser.name,
         provider: currentUser.provider || 'google',
       });
       setUser(currentUser);
-      const profile = getProfile(currentUser.id);
+      const profile = await getProfileAsync(currentUser.id);
       setFamilyProfile(profile);
-      setFamilies(listFamilies());
+      setFamilies(await listFamiliesAsync());
       setIsAuthenticated(true);
       setIsLoadingAuth(false);
       setAuthChecked(true);
@@ -80,29 +122,55 @@ export const AuthProvider = ({ children }) => {
   const logout = (shouldRedirect = true) => {
     setUser(null);
     setIsAuthenticated(false);
+    setFamilyProfile(null);
 
-    if (shouldRedirect) {
-      base44.auth.logout(window.location.href);
-    } else {
-      base44.auth.logout();
+    if (!supabase) return;
+
+    supabase.auth.signOut().finally(() => {
+      if (shouldRedirect) {
+        window.location.href = window.location.origin;
+      }
+    });
+  };
+
+  const navigateToLogin = async () => {
+    if (!isSupabaseConfigured || !supabase) {
+      setAuthError({
+        type: 'auth_not_configured',
+        message: 'Supabase configuration is missing',
+      });
+      return;
+    }
+
+    const redirectTo = `${window.location.origin}${window.location.pathname}`;
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo,
+      },
+    });
+    if (error) {
+      setAuthError({
+        type: 'oauth_error',
+        message: error.message || 'Google login failed',
+      });
     }
   };
 
-  const navigateToLogin = () => {
-    base44.auth.redirectToLogin(window.location.href);
-  };
-
-  const completeOnboarding = (payload) => {
+  const completeOnboarding = async (payload) => {
     if (!user) return;
-    const family = upsertFamily({
+    const family = await upsertFamily({
       familyName: payload.familyName,
       role: payload.role,
       currentUserName: payload.displayName || user.name,
       spouseName: payload.spouseName,
       childrenNames: payload.childrenNames,
+      currentUserId: user.id,
+      currentUserEmail: user.email,
+      currentUserProvider: user.provider || 'google',
     });
 
-    const profile = saveProfile(user.id, {
+    const profile = await saveProfileAsync(user.id, {
       onboardingCompleted: true,
       role: payload.role,
       familyId: family.id,
@@ -112,13 +180,13 @@ export const AuthProvider = ({ children }) => {
     });
 
     setFamilyProfile(profile);
-    (payload.childrenNames || [])
-      .map((name) => name.trim())
-      .filter(Boolean)
-      .forEach((childName) => {
-        createChildProfile({ familyId: family.id, name: childName });
-      });
-    setFamilies(listFamilies());
+    await Promise.all(
+      (payload.childrenNames || [])
+        .map((name) => name.trim())
+        .filter(Boolean)
+        .map((childName) => createChildProfile({ familyId: family.id, name: childName })),
+    );
+    setFamilies(await listFamiliesAsync());
     setUser((prev) => ({
       ...prev,
       role: payload.role,

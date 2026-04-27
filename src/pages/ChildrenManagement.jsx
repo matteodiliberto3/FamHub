@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { UserRoundPlus, Search, Link2, Mail, Users } from 'lucide-react';
 import PageHeader from '@/components/shared/PageHeader';
 import { Card } from '@/components/ui/card';
@@ -9,9 +9,9 @@ import { useAuth } from '@/lib/AuthContext';
 import {
   createChildProfile,
   linkAccountToChild,
-  listAccounts,
-  listChildrenByFamily,
-  searchAccountsByEmail,
+  listAccountsAsync,
+  listChildrenByFamilyAsync,
+  searchAccountsByEmailAsync,
 } from '@/lib/onboarding-store';
 
 export default function ChildrenManagement() {
@@ -19,36 +19,85 @@ export default function ChildrenManagement() {
   const [newChildName, setNewChildName] = useState('');
   const [accountSearch, setAccountSearch] = useState('');
   const [selectedChildId, setSelectedChildId] = useState('');
-  const [refreshKey, setRefreshKey] = useState(0);
+  const [children, setChildren] = useState([]);
+  const [accounts, setAccounts] = useState([]);
+  const [searchResults, setSearchResults] = useState([]);
 
   const isParent = familyProfile?.role === 'parent';
   const familyId = familyProfile?.familyId;
-  const children = useMemo(
-    () => (familyId ? listChildrenByFamily(familyId) : []),
-    [familyId, refreshKey],
-  );
+  useEffect(() => {
+    let isMounted = true;
+    if (!familyId) {
+      setChildren([]);
+      return undefined;
+    }
+
+    const loadChildren = async () => {
+      try {
+        const rows = await listChildrenByFamilyAsync(familyId);
+        if (isMounted) setChildren(rows);
+      } catch (error) {
+        console.error('Cannot load children:', error);
+      }
+    };
+    loadChildren();
+    return () => {
+      isMounted = false;
+    };
+  }, [familyId]);
+
+  useEffect(() => {
+    let isMounted = true;
+    const loadAccounts = async () => {
+      try {
+        const rows = await listAccountsAsync();
+        if (isMounted) setAccounts(rows);
+      } catch (error) {
+        console.error('Cannot load accounts:', error);
+      }
+    };
+    loadAccounts();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+    const loadSearch = async () => {
+      try {
+        const rows = await searchAccountsByEmailAsync(accountSearch);
+        if (isMounted) setSearchResults(rows);
+      } catch (error) {
+        console.error('Cannot search accounts:', error);
+      }
+    };
+    loadSearch();
+    return () => {
+      isMounted = false;
+    };
+  }, [accountSearch]);
+
   const accountsIndex = useMemo(() => {
     const map = new Map();
-    listAccounts().forEach((acc) => map.set(acc.accountId, acc));
+    accounts.forEach((acc) => map.set(acc.accountId, acc));
     return map;
-  }, [refreshKey]);
+  }, [accounts]);
 
-  const searchResults = useMemo(
-    () => searchAccountsByEmail(accountSearch),
-    [accountSearch, refreshKey],
-  );
-
-  const handleAddChild = () => {
+  const handleAddChild = async () => {
     if (!familyId || !newChildName.trim()) return;
-    createChildProfile({ familyId, name: newChildName });
+    await createChildProfile({ familyId, name: newChildName });
+    const refreshed = await listChildrenByFamilyAsync(familyId);
+    setChildren(refreshed);
     setNewChildName('');
-    setRefreshKey((v) => v + 1);
   };
 
-  const handleLinkAccount = (accountId) => {
+  const handleLinkAccount = async (accountId) => {
     if (!selectedChildId) return;
-    linkAccountToChild({ childId: selectedChildId, accountId });
-    setRefreshKey((v) => v + 1);
+    await linkAccountToChild({ childId: selectedChildId, accountId });
+    if (!familyId) return;
+    const refreshed = await listChildrenByFamilyAsync(familyId);
+    setChildren(refreshed);
   };
 
   if (!isParent) {
