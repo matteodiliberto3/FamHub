@@ -33,7 +33,7 @@ export default function Finances() {
   const totalExpenses = transactions.filter(t => t.type === 'uscita').reduce((s, t) => s + (t.amount || 0), 0);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 section-stagger">
       <PageHeader
         title="Finanze Famiglia"
         subtitle="Gestisci entrate e uscite"

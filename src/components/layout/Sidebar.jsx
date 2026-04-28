@@ -37,18 +37,21 @@ export default function Sidebar() {
         <Menu className="w-5 h-5" />
       </button>
 
-      {mobileOpen && (
-        <div
-          className="lg:hidden fixed inset-0 bg-black/30 backdrop-blur-[1px] z-40 transition-opacity duration-200 ease-out-strong"
-          onClick={() => setMobileOpen(false)}
-        />
-      )}
+      <div
+        className={cn(
+          "lg:hidden fixed inset-0 bg-black/30 backdrop-blur-[1px] z-40 transition-opacity ease-out-strong",
+          mobileOpen
+            ? "opacity-100 pointer-events-auto duration-200"
+            : "opacity-0 pointer-events-none duration-150",
+        )}
+        onClick={() => setMobileOpen(false)}
+      />
 
       <aside
         className={cn(
-          "fixed top-0 left-0 h-full w-64 bg-sidebar border-r border-sidebar-border/80 z-50 flex flex-col transition-transform duration-300 ease-drawer",
+          "fixed top-0 left-0 h-full w-64 bg-sidebar border-r border-sidebar-border/80 z-50 flex flex-col transition-transform ease-drawer",
           "lg:translate-x-0",
-          mobileOpen ? "translate-x-0" : "-translate-x-full"
+          mobileOpen ? "translate-x-0 duration-200" : "-translate-x-full duration-150"
         )}
       >
         <div className="px-5 py-6 flex items-center justify-between border-b border-sidebar-border/70">

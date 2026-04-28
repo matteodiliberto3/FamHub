@@ -42,7 +42,7 @@ export default function Permissions() {
   const getOverallStatus = (perm) => (perm.parent1_approval === 'rifiutato' || perm.parent2_approval === 'rifiutato') ? 'rifiutato' : (perm.parent1_approval === 'approvato' && perm.parent2_approval === 'approvato') ? 'approvato' : 'in_attesa';
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 section-stagger">
       <PageHeader
         title="Permessi Uscita"
         subtitle="Richieste di uscita con doppio consenso dei genitori"

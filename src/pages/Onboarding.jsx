@@ -125,7 +125,7 @@ export default function Onboarding({
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <button
                     className={cn(
-                      "rounded-2xl border p-5 text-left transition-[transform,border-color,background-color] duration-200 ease-out hover:-translate-y-0.5",
+                      "rounded-2xl border p-5 text-left transition-[transform,border-color,background-color] duration-150 ease-out-strong hover:-translate-y-0.5 active:scale-[0.97]",
                       role === "parent"
                         ? "border-primary bg-primary/5"
                         : "border-border hover:border-primary/40",
@@ -141,7 +141,7 @@ export default function Onboarding({
 
                   <button
                     className={cn(
-                      "rounded-2xl border p-5 text-left transition-[transform,border-color,background-color] duration-200 ease-out hover:-translate-y-0.5",
+                      "rounded-2xl border p-5 text-left transition-[transform,border-color,background-color] duration-150 ease-out-strong hover:-translate-y-0.5 active:scale-[0.97]",
                       role === "child"
                         ? "border-primary bg-primary/5"
                         : "border-border hover:border-primary/40",
@@ -192,7 +192,7 @@ export default function Onboarding({
                       <button
                         key={family.id}
                         className={cn(
-                          "w-full text-left rounded-xl border p-3 transition-[background-color,border-color] duration-200",
+                          "w-full text-left rounded-xl border p-3 transition-[transform,background-color,border-color] duration-150 ease-out-strong active:scale-[0.99]",
                           selectedFamily?.id === family.id
                             ? "border-primary bg-primary/5"
                             : "border-border hover:border-primary/40",

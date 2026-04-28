@@ -34,16 +34,16 @@ export default function Dashboard() {
   const upcomingEvents = events.filter(e => new Date(e.date) >= new Date(new Date().toDateString())).sort((a, b) => new Date(a.date) - new Date(b.date)).slice(0, 5);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 section-stagger">
       <div>
         <h1 className="text-3xl font-display font-bold text-foreground">Bentornato 👋</h1>
         <p className="text-muted-foreground mt-1">Ecco un riepilogo della tua famiglia</p>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard title="Entrate" value={`€${totalIncome.toLocaleString('it-IT')}`} icon={TrendingUp} color="green" />
-        <StatCard title="Uscite" value={`€${totalExpenses.toLocaleString('it-IT')}`} icon={TrendingDown} color="red" />
-        <StatCard title="Permessi in attesa" value={pendingPermissions.length} icon={HandHeart} color="accent" />
-        <StatCard title="Budget in attesa" value={pendingBudgets.length} icon={Palmtree} color="purple" />
+        <div><StatCard title="Entrate" value={`€${totalIncome.toLocaleString('it-IT')}`} icon={TrendingUp} color="green" /></div>
+        <div><StatCard title="Uscite" value={`€${totalExpenses.toLocaleString('it-IT')}`} icon={TrendingDown} color="red" /></div>
+        <div><StatCard title="Permessi in attesa" value={pendingPermissions.length} icon={HandHeart} color="accent" /></div>
+        <div><StatCard title="Budget in attesa" value={pendingBudgets.length} icon={Palmtree} color="purple" /></div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
