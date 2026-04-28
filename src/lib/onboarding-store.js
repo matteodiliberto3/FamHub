@@ -58,10 +58,14 @@ export async function getProfileAsync(userId) {
   return getProfile(userId);
 }
 
-export async function saveProfileAsync(userId, profile) {
+export async function saveProfileAsync(userId, profile, options = {}) {
   if (isSupabaseConfigured && supabase) {
+    const normalizedEmail =
+      options.email?.trim().toLowerCase() || `${userId}@local.dilihub.app`;
     const payload = {
       id: userId,
+      email: normalizedEmail,
+      provider: options.provider || 'google',
       role: profile.role || 'child',
       family_id: profile.familyId || null,
       display_name: profile.displayName || 'Utente',
@@ -146,18 +150,24 @@ export async function upsertFamily({
       .from('families')
       .select('id,name,created_at')
       .ilike('name', familyName.trim());
-    if (findError) throw findError;
+
+    // During first onboarding, policies might temporarily block listing families.
+    // We keep onboarding flowing by treating this as "no visible families".
+    if (findError && findError.code !== '42501') throw findError;
 
     let family = (existingFamilies || []).find((f) => f.name.trim().toLowerCase() === normalizedName) || null;
 
     if (!family) {
-      const { data: createdFamily, error: createError } = await supabase
+      const newFamilyId = crypto.randomUUID();
+      const { error: createError } = await supabase
         .from('families')
-        .insert({ name: familyName.trim() })
-        .select('id,name,created_at')
-        .single();
+        .insert({ id: newFamilyId, name: familyName.trim() });
       if (createError) throw createError;
-      family = createdFamily;
+      family = {
+        id: newFamilyId,
+        name: familyName.trim(),
+        created_at: new Date().toISOString(),
+      };
     }
 
     const { error: userError } = await supabase.from('app_users').upsert({
@@ -171,26 +181,8 @@ export async function upsertFamily({
     });
     if (userError) throw userError;
 
-    if (role === 'parent' && spouseName?.trim()) {
-      const spouseEmail = `${spouseName.trim().toLowerCase().replace(/\s+/g, '.')}@pending.dilihub.app`;
-      try {
-        const { error: spouseError } = await supabase.from('app_users').upsert({
-          id: `pending-spouse-${family.id}-${spouseEmail}`,
-          email: spouseEmail,
-          display_name: spouseName.trim(),
-          provider: 'other',
-          role: 'parent',
-          family_id: family.id,
-          last_seen_at: new Date().toISOString(),
-        });
-        if (spouseError) {
-          // Do not block onboarding for an optional spouse placeholder profile.
-          console.warn('Non-blocking spouse upsert error:', spouseError.message);
-        }
-      } catch (error) {
-        console.warn('Non-blocking spouse upsert exception:', error);
-      }
-    }
+    // NOTE: We do not create placeholder spouse rows in app_users.
+    // app_users is self-owned by authenticated identity and RLS forbids creating other users.
 
     const cleanChildren = (childrenNames || []).map((v) => v.trim()).filter(Boolean);
     if (role === 'parent' && cleanChildren.length > 0) {

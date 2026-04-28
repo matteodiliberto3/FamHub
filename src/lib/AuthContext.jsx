@@ -183,6 +183,9 @@ export const AuthProvider = ({ children }) => {
       familyName: family.name,
       displayName: payload.displayName || user.name,
       completedAt: new Date().toISOString(),
+    }, {
+      email: user.email,
+      provider: user.provider || 'google',
     });
 
     setFamilyProfile(profile);
