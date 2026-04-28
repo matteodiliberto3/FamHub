@@ -53,7 +53,7 @@ export default function BudgetRequests() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 section-stagger">
       <PageHeader
         title="Budget & Gite"
         subtitle="Richieste di budget per vacanze, gite e attività"

@@ -46,7 +46,7 @@ export default function Calendar() {
   const navLabel = () => view === 'month' ? format(currentMonth, 'MMMM yyyy', { locale: it }) : view === 'week' ? `${format(currentWeekStart, 'd MMM', { locale: it })} – ${format(new Date(currentWeekStart.getTime() + 6 * 86400000), 'd MMM yyyy', { locale: it })}` : format(selectedDay, 'EEEE d MMMM yyyy', { locale: it });
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 section-stagger">
       <PageHeader
         title="Calendario Famiglia"
         subtitle="Gli impegni di tutta la famiglia"

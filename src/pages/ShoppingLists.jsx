@@ -29,7 +29,7 @@ export default function ShoppingLists() {
   const activeList = lists.find(l => l.id === selectedList?.id) || selectedList;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 section-stagger">
       <PageHeader
         title="Liste della Spesa"
         subtitle="Liste condivise per tutta la famiglia"

@@ -16,6 +16,7 @@ const stepVariants = {
   center: { opacity: 1, x: 0, scale: 1 },
   exit: { opacity: 0, x: -20, scale: 0.985 },
 };
+const ONBOARDING_DRAFT_KEY = "dilihub-onboarding-draft";
 
 function StepContainer({ stepKey, children }) {
   return (
@@ -39,13 +40,25 @@ export default function Onboarding({
   families,
   onComplete,
 }) {
-  const [step, setStep] = useState(1);
-  const [role, setRole] = useState(null);
-  const [familyQuery, setFamilyQuery] = useState("");
-  const [selectedFamily, setSelectedFamily] = useState(null);
-  const [spouseName, setSpouseName] = useState("");
-  const [childrenNames, setChildrenNames] = useState([""]);
+  const getInitialDraft = () => {
+    try {
+      const raw = window.sessionStorage.getItem(ONBOARDING_DRAFT_KEY);
+      if (!raw) return null;
+      return JSON.parse(raw);
+    } catch {
+      return null;
+    }
+  };
+
+  const initialDraft = getInitialDraft();
+  const [step, setStep] = useState(initialDraft?.step || 1);
+  const [role, setRole] = useState(initialDraft?.role || null);
+  const [familyQuery, setFamilyQuery] = useState(initialDraft?.familyQuery || "");
+  const [selectedFamily, setSelectedFamily] = useState(initialDraft?.selectedFamily || null);
+  const [spouseName, setSpouseName] = useState(initialDraft?.spouseName || "");
+  const [childrenNames, setChildrenNames] = useState(initialDraft?.childrenNames?.length ? initialDraft.childrenNames : [""]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
   const filteredFamilies = useMemo(() => {
     const q = familyQuery.trim().toLowerCase();
@@ -76,6 +89,7 @@ export default function Onboarding({
     const familyName = selectedFamily?.name || exactFamilyMatch?.name || familyQuery.trim();
     if (!familyName) return;
     setIsSubmitting(true);
+    setSubmitError("");
     try {
       await onComplete({
         role,
@@ -84,10 +98,26 @@ export default function Onboarding({
         childrenNames,
         displayName: currentUser?.name || "Utente",
       });
+      window.sessionStorage.removeItem(ONBOARDING_DRAFT_KEY);
+    } catch (error) {
+      console.error("Onboarding completion failed:", error);
+      setSubmitError("Non siamo riusciti a completare il setup. Controlla i dati e riprova.");
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  React.useEffect(() => {
+    const draft = {
+      step,
+      role,
+      familyQuery,
+      selectedFamily,
+      spouseName,
+      childrenNames,
+    };
+    window.sessionStorage.setItem(ONBOARDING_DRAFT_KEY, JSON.stringify(draft));
+  }, [step, role, familyQuery, selectedFamily, spouseName, childrenNames]);
 
   return (
     <div className="min-h-screen bg-background px-4 py-8 sm:py-12">
@@ -271,11 +301,22 @@ export default function Onboarding({
                       )}
                     </div>
                   ))}
-                  <Button variant="secondary" onClick={addChildField}>
-                    <UserRoundPlus className="w-4 h-4 mr-1" />
-                    Aggiungi figlio
+                  <Button
+                    variant="secondary"
+                    onClick={addChildField}
+                    className="group relative overflow-hidden transition-[transform,filter] duration-150 ease-out-strong active:scale-[0.97]"
+                  >
+                    <span className="absolute inset-0 bg-primary/10 opacity-0 transition-opacity duration-150 ease-out-strong group-active:opacity-100" />
+                    <UserRoundPlus className="w-4 h-4 mr-1 relative z-10 transition-transform duration-150 ease-out-strong group-hover:rotate-6 group-active:scale-95" />
+                    <span className="relative z-10">Aggiungi figlio</span>
                   </Button>
                 </div>
+
+                {submitError && (
+                  <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-3 py-2">
+                    {submitError}
+                  </p>
+                )}
 
                 <div className="flex items-center justify-between">
                   <Button variant="outline" onClick={() => setStep(2)}>

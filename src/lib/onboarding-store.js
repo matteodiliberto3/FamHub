@@ -173,21 +173,30 @@ export async function upsertFamily({
 
     if (role === 'parent' && spouseName?.trim()) {
       const spouseEmail = `${spouseName.trim().toLowerCase().replace(/\s+/g, '.')}@pending.dilihub.app`;
-      await supabase.from('app_users').upsert({
-        id: `pending-spouse-${family.id}-${spouseEmail}`,
-        email: spouseEmail,
-        display_name: spouseName.trim(),
-        provider: 'other',
-        role: 'parent',
-        family_id: family.id,
-        last_seen_at: new Date().toISOString(),
-      });
+      try {
+        const { error: spouseError } = await supabase.from('app_users').upsert({
+          id: `pending-spouse-${family.id}-${spouseEmail}`,
+          email: spouseEmail,
+          display_name: spouseName.trim(),
+          provider: 'other',
+          role: 'parent',
+          family_id: family.id,
+          last_seen_at: new Date().toISOString(),
+        });
+        if (spouseError) {
+          // Do not block onboarding for an optional spouse placeholder profile.
+          console.warn('Non-blocking spouse upsert error:', spouseError.message);
+        }
+      } catch (error) {
+        console.warn('Non-blocking spouse upsert exception:', error);
+      }
     }
 
     const cleanChildren = (childrenNames || []).map((v) => v.trim()).filter(Boolean);
     if (role === 'parent' && cleanChildren.length > 0) {
-      const inserts = cleanChildren.map((name) => ({ family_id: family.id, name }));
-      await supabase.from('child_profiles').insert(inserts);
+      for (const childName of cleanChildren) {
+        await createChildProfile({ familyId: family.id, name: childName });
+      }
     }
 
     const refreshed = await listFamiliesFromSupabase();
