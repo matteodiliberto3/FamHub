@@ -326,10 +326,19 @@ export function listAccounts() {
 
 export async function listAccountsAsync() {
   if (isSupabaseConfigured && supabase) {
-    const { data, error } = await supabase
-      .from('app_users')
-      .select('id,email,display_name,provider,last_seen_at')
-      .order('last_seen_at', { ascending: false });
+    let data = null;
+    let error = null;
+    const rpcResult = await supabase.rpc('get_my_family_member_accounts', { search_query: '' });
+    data = rpcResult.data;
+    error = rpcResult.error;
+    if (error) {
+      const fallback = await supabase
+        .from('app_users')
+        .select('id,email,display_name,provider,last_seen_at')
+        .order('last_seen_at', { ascending: false });
+      data = fallback.data;
+      error = fallback.error;
+    }
     if (error) throw error;
     const mapped = (data || []).map((acc) => ({
       accountId: acc.id,
@@ -393,11 +402,20 @@ export async function searchAccountsByEmailAsync(query) {
   const q = query.trim().toLowerCase();
   if (!q) return [];
   if (isSupabaseConfigured && supabase) {
-    const { data, error } = await supabase
-      .from('app_users')
-      .select('id,email,display_name,provider,last_seen_at')
-      .ilike('email', `%${q}%`)
-      .limit(20);
+    let data = null;
+    let error = null;
+    const rpcResult = await supabase.rpc('get_my_family_member_accounts', { search_query: q });
+    data = rpcResult.data;
+    error = rpcResult.error;
+    if (error) {
+      const fallback = await supabase
+        .from('app_users')
+        .select('id,email,display_name,provider,last_seen_at')
+        .ilike('email', `%${q}%`)
+        .limit(20);
+      data = fallback.data;
+      error = fallback.error;
+    }
     if (error) throw error;
     return (data || []).map((acc) => ({
       accountId: acc.id,

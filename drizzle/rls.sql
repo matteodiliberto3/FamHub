@@ -161,3 +161,44 @@ using (
       and me.role = 'parent'
   )
 );
+
+-- RPC helper to list/search accounts within the authenticated user's family.
+-- SECURITY DEFINER is required to avoid recursive RLS reads on app_users.
+create or replace function public.get_my_family_member_accounts(search_query text default '')
+returns table (
+  id text,
+  email text,
+  display_name text,
+  provider auth_provider,
+  last_seen_at timestamptz
+)
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  with me as (
+    select family_id
+    from app_users
+    where id = auth.uid()::text
+    limit 1
+  )
+  select
+    u.id,
+    u.email,
+    u.display_name,
+    u.provider,
+    u.last_seen_at
+  from app_users u
+  join me on me.family_id is not null and u.family_id = me.family_id
+  where auth.uid() is not null
+    and (
+      coalesce(search_query, '') = ''
+      or u.email ilike ('%' || search_query || '%')
+    )
+  order by u.last_seen_at desc
+  limit 50;
+$$;
+
+revoke all on function public.get_my_family_member_accounts(text) from public;
+grant execute on function public.get_my_family_member_accounts(text) to authenticated;
