@@ -12,7 +12,7 @@ export default function StatCard({ title, value, subtitle, icon: Icon, color = '
   };
 
   return (
-    <Card className="p-5 border-border/70 transition-[transform,box-shadow,border-color] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-[0_10px_26px_hsl(var(--foreground)/0.08)]">
+    <Card className="group p-5 border-border/70 transition-[transform,box-shadow,border-color] duration-200 ease-out-strong hover:-translate-y-0.5 hover:shadow-[0_10px_26px_hsl(var(--foreground)/0.08)]">
       <div className="flex items-start justify-between">
         <div className="space-y-1.5">
           <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-[0.08em]">{title}</p>
@@ -20,7 +20,7 @@ export default function StatCard({ title, value, subtitle, icon: Icon, color = '
           {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}
         </div>
         {Icon && (
-          <div className={cn('p-2.5 rounded-xl border border-current/10', colorMap[color] || colorMap.primary)}>
+          <div className={cn('p-2.5 rounded-xl border border-current/10 transition-transform duration-150 ease-out-strong group-hover:scale-[1.03]', colorMap[color] || colorMap.primary)}>
             <Icon className="w-5 h-5" />
           </div>
         )}

@@ -42,6 +42,12 @@
     --sidebar-accent-foreground: 222 47% 11%;
     --sidebar-border: 214 32% 91%;
     --sidebar-ring: 221 83% 53%;
+    --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+    --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+    --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+    --motion-fast: 160ms;
+    --motion-base: 220ms;
+    --motion-slow: 320ms;
   }
 
   .dark {
@@ -86,5 +92,41 @@
   }
   body {
     @apply bg-background text-foreground font-sans antialiased;
+  }
+}
+
+@layer utilities {
+  .ease-out-strong {
+    transition-timing-function: var(--ease-out);
+  }
+
+  .ease-in-out-strong {
+    transition-timing-function: var(--ease-in-out);
+  }
+
+  .ease-drawer {
+    transition-timing-function: var(--ease-drawer);
+  }
+
+  .page-enter {
+    animation: page-enter var(--motion-slow) var(--ease-out) both;
+  }
+}
+
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-enter {
+    animation-duration: 80ms;
+    transform: none;
   }
 }

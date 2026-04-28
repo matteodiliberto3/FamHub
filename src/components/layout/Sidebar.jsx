@@ -32,21 +32,21 @@ export default function Sidebar() {
     <>
       <button
         onClick={() => setMobileOpen(true)}
-        className="lg:hidden fixed top-4 left-4 z-50 p-2.5 bg-card/95 backdrop-blur rounded-xl shadow-sm border border-border/80 transition-transform duration-200 ease-out active:scale-[0.97]"
+        className="lg:hidden fixed top-4 left-4 z-50 p-2.5 bg-card/95 backdrop-blur rounded-xl shadow-sm border border-border/80 transition-transform duration-150 ease-out-strong active:scale-[0.97]"
       >
         <Menu className="w-5 h-5" />
       </button>
 
       {mobileOpen && (
         <div
-          className="lg:hidden fixed inset-0 bg-black/30 backdrop-blur-[1px] z-40"
+          className="lg:hidden fixed inset-0 bg-black/30 backdrop-blur-[1px] z-40 transition-opacity duration-200 ease-out-strong"
           onClick={() => setMobileOpen(false)}
         />
       )}
 
       <aside
         className={cn(
-          "fixed top-0 left-0 h-full w-64 bg-sidebar border-r border-sidebar-border/80 z-50 flex flex-col transition-transform duration-300 ease-out",
+          "fixed top-0 left-0 h-full w-64 bg-sidebar border-r border-sidebar-border/80 z-50 flex flex-col transition-transform duration-300 ease-drawer",
           "lg:translate-x-0",
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         )}
@@ -63,7 +63,7 @@ export default function Sidebar() {
           </div>
           <button
             onClick={() => setMobileOpen(false)}
-            className="lg:hidden p-1.5 hover:bg-muted rounded-lg transition-colors duration-200"
+            className="lg:hidden p-1.5 hover:bg-muted rounded-lg transition-colors duration-150 ease-out-strong"
           >
             <X className="w-4 h-4" />
           </button>
@@ -78,13 +78,13 @@ export default function Sidebar() {
                 to={item.path}
                 onClick={() => setMobileOpen(false)}
                 className={cn(
-                  "group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-[transform,background-color,color,box-shadow] duration-200 ease-out active:scale-[0.985]",
+                  "group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-[transform,background-color,color,box-shadow] duration-150 ease-out-strong active:scale-[0.985]",
                   isActive
                     ? "bg-primary text-primary-foreground shadow-sm"
                     : "text-muted-foreground hover:bg-sidebar-accent hover:text-foreground"
                 )}
               >
-                <item.icon className="w-4.5 h-4.5 transition-transform duration-200 ease-out group-hover:scale-105" />
+                <item.icon className="w-4.5 h-4.5 transition-transform duration-150 ease-out-strong group-hover:scale-105" />
                 {item.label}
               </Link>
             );
